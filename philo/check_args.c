@@ -26,16 +26,22 @@ int	is_nb(char *str)
 
 int check_args (int ac, char **av, t_info *info)
 {
+	if (ac == 6)
+		info->meals = ft_atoi(av[5]);
+	else
+		info->meals = 0;
 	while (ac > 1)
 	{
 		if (!is_nb(av[--ac]))
-			return (0);
+			return (1);
 		if (ft_atoi(av[ac]) > INT_MAX || ft_atoi(av[ac]) < INT_MIN)
-			return (0);
+			return (1);
 	}
 	info->count = ft_atoi(av[1]);
 	info->t_die = ft_atoi(av[2]);
-	info->t_sleep = ft_atoi(av[3]);
-	info->t_eat = ft_atoi(av[4]);
-	return (1);
+	info->t_eat = ft_atoi(av[3]);
+	info->t_sleep = ft_atoi(av[4]);
+	info->m_counter = 0;
+	pthread_mutex_init(&info->msg_s, NULL);
+	return (0);
 }

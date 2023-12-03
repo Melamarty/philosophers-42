@@ -6,7 +6,7 @@
 /*   By: mel-amar <mel-amar@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 17:30:37 by mel-amar          #+#    #+#             */
-/*   Updated: 2023/11/26 12:55:36 by mel-amar         ###   ########.fr       */
+/*   Updated: 2023/12/03 20:48:38 by mel-amar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,7 @@ long	ft_atoi(const char *str)
 
 void	wait_p(int	time)
 {
-	while (--time > -1)
-		usleep(100000);
+	usleep(time * 1000);
 }
 
 long get_time()
