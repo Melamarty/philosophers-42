@@ -1,0 +1,8 @@
+{
+	"files.associations": {
+		"philo_bonus.h": "c",
+		"chrono": "c",
+		"unordered_map": "c",
+		"locale": "c"
+	}
+}
