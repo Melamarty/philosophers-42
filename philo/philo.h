@@ -15,10 +15,13 @@ typedef struct s_info
 	int				t_eat;
 	int				t_sleep;
 	int				meals;
+	pthread_mutex_t	meals_time;
 	pthread_mutex_t	msg_s;
 	pthread_mutex_t	last_time_s;
+	pthread_mutex_t	fin_m;
 	long int		start_time;
 	int				m_counter;
+	int				fin;
 } t_info;
 
 typedef struct s_list

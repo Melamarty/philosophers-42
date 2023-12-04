@@ -6,7 +6,7 @@
 /*   By: mel-amar <mel-amar@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 17:30:37 by mel-amar          #+#    #+#             */
-/*   Updated: 2023/12/03 20:48:38 by mel-amar         ###   ########.fr       */
+/*   Updated: 2023/12/04 15:35:35 by mel-amar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,19 @@ long	ft_atoi(const char *str)
 	return (res * s);
 }
 
-void	wait_p(int	time)
-{
-	usleep(time * 1000);
-}
+// void	wait_p(int	time)
+// {
+// 	usleep(time * 1000);
+// }
 
+void	wait_p(int ms)
+{
+	long	curr;
+
+	curr = ms + get_time();
+	while (get_time() < curr)
+		usleep(100);
+}
 long get_time()
 {
 	struct timeval time;

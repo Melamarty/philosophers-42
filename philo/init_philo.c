@@ -6,35 +6,46 @@ int	check_die(t_philo *p)
 	while (1)
 	{
 		i = -1;
-		// printf("m_counter : %d\n", p->info->m_counter);
 		while (++i < p->info->count)
 		{
+			pthread_mutex_lock(&p->info->meals_time);
+			// printf("m_counter : %d\n", p->info->m_counter);
+			if (p->info->m_counter == p->info->count)
+			{
+				p->info->fin = 1;
+				pthread_mutex_unlock(&p->info->meals_time);
+				// printf("finished\n");
+				return (0);
+			}
+			pthread_mutex_unlock(&p->info->meals_time);
+			pthread_mutex_lock(&p[i].eat_time);
 			if (get_time() - p[i].last_eat > p->info->t_die)
 			{
+				pthread_mutex_unlock(&p[i].eat_time);
 				print("is_die", &p[i]);
 				return (1);
 			}
+			pthread_mutex_unlock(&p[i].eat_time);
+			usleep(200);
 		}
-		usleep(100);
-		if (p->info->meals && p->info->m_counter >= p->info->meals && p->info->count > 1)
-			return (1);
 	}
 }
 
 void	*philo_routine(void *arg)
 {
-	t_philo *philo;
+	t_philo *p;
 
-	philo = (t_philo *)arg;
-	philo->last_eat = get_time();
-	// printf("eat %d die %d slepp %d\n", philo->t_eat, philo->t_die, philo->t_sleep);
+	p = (t_philo *)arg;
+	pthread_mutex_lock(&p->eat_time);
+	p->last_eat = get_time();
+	pthread_mutex_unlock(&p->eat_time);
 	while (1)
 	{
-		take_fork(philo);
-		if (philo->info->count == 1)
+		take_fork(p);
+		if (p->info->count == 1)
 			return (NULL);
-		feed_philo(philo);
-		sleep_philo(philo);
+		feed_philo(p);
+		sleep_philo(p);
 	}
 	return (NULL);
 }
@@ -47,15 +58,11 @@ int	create_threads(t_philo *philos)
 	while (++i < philos->info->count)
 	{
 		philos[i].ind = i + 1;
-		// printf("\033[38;5;233munitializing philo %d\n", i + 1);
 		if (pthread_create(&(philos[i].philo), NULL, philo_routine, &philos[i]))
-		{
-			printf("\033[38;5;196an error occured while creating threads");
 			return (1);
-		}
 		if (pthread_detach((philos)[i].philo))
-			return (0);
-		usleep(800);
+			return (1);
+		usleep(200);
 	}
 	return (check_die(philos));
 	return (0);
@@ -67,6 +74,8 @@ int	init_philo(t_philo *philo, t_info *info)
 
 	i = 0;
 	info->start_time = get_time();
+	pthread_mutex_init(&info->meals_time, NULL);
+	pthread_mutex_init(&info->fin_m, NULL);
 	while (i < info->count)
 	{
 		philo[i].info = info;
