@@ -1,67 +1,69 @@
 #include "philo_bonus.h"
 
-int	ft_kill (t_philo *philos)
+void	*check_die(void *args)
 {
-	int i;
+	t_philo	*philos;
 
-	i = -1;
-	while (++i < philos->info->count)
-		kill(philos[i].philo, SIGINT);
+	philos = (t_philo *)args;
+	sem_wait(philos->info->die_s);
+	while (1)
+	{
+		sem_wait(philos->last_eat_s);
+		if (get_time() > philos->last_eat + philos->info->t_die)
+		{
+			sem_post(philos->info->die_s);
+			sem_post(philos->info->die_s);
+			print("die", philos, 1);
+			return (NULL);
+		}
+		sem_post(philos->last_eat_s);
+		usleep(200);
+	}
+}
+
+int	die_monitor(t_philo *philos)
+{
+	if (pthread_create(&philos->info->monitor, NULL, check_meals,
+			philos) != 0)
+		return (1);
+	if (pthread_detach(philos->info->monitor) != 0)
+		return (1);
 	return (0);
 }
 
-void	*check_die(void *args)
+void	ft_kill(t_philo *philos)
 {
-	t_philo	*p;
+	int	j;
 
-	p = (t_philo *)args;
-	sem_wait (p->info->die_s);
-	while (1)
+	j = -1;
+	while (++j < philos->info->count)
 	{
-		// sem_wait(p->info->fin);
-		// if (get_time() - p->last_eat > p->info->t_die)
-		// 	printf("%d\n", p->info->stop);
-		if (get_time() - p->last_eat > p->info->t_die && !p->info->stop)
-		{
-			if (!p->info->stop) {
-				sem_wait(p->info->fin);
-				p->info->stop = 1;
-				sem_post(p->info->fin);
-   				print("is die", p);
-			}
-			sem_post(p->info->die_s);
-			sem_post(p->info->die_s);
-			return (NULL);
-		}
-		// sem_post(p->info->fin);
+		if (philos[j].philo != 0)
+			kill(philos[j].philo, SIGINT);
 		usleep(100);
 	}
-	return (NULL);
 }
 
-void	*philo_routine(void *args)
+int	create_philosophers(t_philo *philos)
 {
-	t_philo *philo;
+	int	i;
 
-	philo = (t_philo *)args;
-	sem_wait (philo->info->last_eat_s);
-	philo->last_eat = get_time();
-	sem_post (philo->info->last_eat_s);
-	if (pthread_create(&philo->monitor, NULL, check_die, philo))
-		return (NULL);
-	if (pthread_detach(philo->monitor))
-		return (NULL);
-	// printf("eat %d die %d slepp %d\n", philo->t_eat, philo->t_die, philo->t_sleep);
-	while (1)
+	i = -1;
+	philos->info->start_time = get_time();
+	while (++i < philos->info->count)
 	{
-		take_fork(philo);
-		if (philo->info->meals && philo->eat_c >= philo->info->meals)
-			return (kill (philo->philo, SIGINT), NULL);
-		feed_philo(philo);
-		// printf("eated\n");
-		sleep_philo(philo);
+		philos[i].philo = fork();
+		if (philos[i].philo < 0)
+			printf("Error: fork");
+		if (philos[i].philo == 0)
+			philo_routine(&philos[i]);
+		usleep(100);
 	}
-	return (NULL);
+	if (die_monitor(philos))
+		return (1);
+	sem_wait(philos->info->die_s);
+	ft_kill(philos);
+	return (0);
 }
 
 int	init_philos(t_philo *philos, t_info *info)
@@ -74,16 +76,10 @@ int	init_philos(t_philo *philos, t_info *info)
 	{
 		philos[i].ind = i + 1;
 		philos[i].info = info;
-		philos[i].philo = fork();
-		philos[i].info->start_time = get_time();
-		if (!philos[i].philo)
-			philo_routine (&philos[i]);
-		usleep(100);
+		philos[i].eat_c = 0;
+		sem_unlink("/last_eat");
+		philos[i].last_eat_s = sem_open ("/last_eat", O_CREAT, 0644, 1);
 	}
-	// philos->info->die_s = sem_open ("/die", O_CREAT, 0644, 1);
-	// philos->info->die_s = malloc(*)
-	sem_wait(philos->info->die_s);
-	// check_die(philos);
-	ft_kill(philos);
+	create_philosophers(philos);
 	return (0);
 }

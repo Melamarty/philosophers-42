@@ -54,8 +54,6 @@ int	init_info(int ac, char **av, t_info *info)
 	info->msg_s = sem_open ("/msg", O_CREAT, 0644, 1);
 	sem_unlink("/eat");
 	info->eat_s = sem_open ("/eat", O_CREAT, 0644, 1);
-	sem_unlink("/last_eat");
-	info->last_eat_s = sem_open ("/last_eat", O_CREAT, 0644, 1);
 	sem_unlink("/die");
 	info->die_s = sem_open ("/die", O_CREAT, 0644, 1);
 	sem_unlink("/fin");

@@ -6,7 +6,7 @@
 /*   By: mel-amar <mel-amar@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 17:30:37 by mel-amar          #+#    #+#             */
-/*   Updated: 2023/12/03 17:09:14 by mel-amar         ###   ########.fr       */
+/*   Updated: 2023/12/05 00:16:55 by mel-amar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,25 +42,79 @@ long	ft_atoi(const char *str)
 	return (res * s);
 }
 
-void	wait_p(int	time)
+// void	wait_p(int ms)
+// {
+// 	long	curr;
+
+// 	curr = ms + get_time();
+// 	while (get_time() < curr)
+// 		usleep(100);
+// }
+// long get_time()
+// {
+// 	struct timeval time;
+
+// 	gettimeofday(&time, NULL);
+// 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
+// }
+
+// int	ft_destroy(t_philo *philo)
+// {
+// 	int i = -1;
+// 	while (++i < philo->info->count)
+// 	{
+// 		// sem_close(philo[i].);
+// 		sem_close (philo[i].last_eat_s);
+// 	}
+// 	sem_close (philo->info->fork);
+// 	// sem_post(philo->info->msg_s);
+// 	sem_close (philo->info->eat_s);
+// 	sem_close(philo->info->fork);
+// 	sem_close (philo->info->die_s);
+// 	sem_close (philo->info->msg_s);
+// 	sem_post (philo->info->fin);
+// 	sem_close(philo->info->fin);
+// 	return (0);
+// }
+
+void	*check_meals(void *args)
 {
-	usleep(time * 1000);
+	t_philo	*philos;
+	int		i;
+
+	i = 0;
+	philos = (t_philo *)args;
+	while (philos->info->count > i)
+	{
+		// printf("entered \n");
+		sem_wait(philos->info->fin);
+		i++;
+	}
+	ft_kill(philos);
+	sem_post(philos->info->die_s);
+	close_sem(philos);
+	return (NULL);
 }
 
-long get_time()
+void	close_sem(t_philo *philos)
 {
-	struct timeval time;
+	int	i;
 
-	gettimeofday(&time, NULL);
-	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
+	i = -1;
+	while (++i < philos->info->count)
+		sem_close(philos[i].last_eat_s);
+	sem_post(philos->info->fin);
+	sem_close(philos->info->fin);
+	sem_close(philos->info->fork);
+	sem_close(philos->info->die_s);
+	// printf("finished\n");
+	sem_close(philos->info->msg_s);
 }
 
-int	ft_destroy(t_info *info)
+long	get_time(void)
 {
-	sem_close (info->fork);
-	sem_close (info->msg_s);
-	sem_close (info->eat_s);
-	sem_close (info->last_eat_s);
-	sem_close (info->die_s);
-	return (0);
+	struct timeval	current_time;
+
+	gettimeofday(&current_time, NULL);
+	return ((current_time.tv_sec * 1000) + (current_time.tv_usec / 1000));
 }

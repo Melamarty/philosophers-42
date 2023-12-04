@@ -6,7 +6,7 @@ int main (int ac, char **av)
 	t_philo		*philos;
 	t_info		*info;
 
-	if (ac > 6 || check_args(ac, av))
+	if (ac < 5 || ac > 6 || check_args(ac, av))
 	{
 		printf("\033[38;5;196margument error (^_^)\n");
 		printf("please check arguments syntaxe in the subject\n");
@@ -21,7 +21,7 @@ int main (int ac, char **av)
 		return (free (philos), 1);
 	if (init_philos(philos, info))
 		return (1);
-	ft_destroy(philos->info);
+	close_sem(philos);
 	free (philos);
 	return (0);
 }

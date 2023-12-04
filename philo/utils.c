@@ -6,7 +6,7 @@
 /*   By: mel-amar <mel-amar@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 17:30:37 by mel-amar          #+#    #+#             */
-/*   Updated: 2023/12/04 15:35:35 by mel-amar         ###   ########.fr       */
+/*   Updated: 2023/12/04 17:23:41 by mel-amar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,21 @@ long get_time()
 
 	gettimeofday(&time, NULL);
 	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
+}
+
+int	destroy_muts(t_philo *p)
+{
+	int	i;
+
+	pthread_mutex_destroy(&p->info->meals_time);
+	pthread_mutex_destroy(&p->info->msg_s);
+	pthread_mutex_destroy(&p->info->last_time_s);
+	pthread_mutex_destroy(&p->info->fin_m);
+	i = -1;
+	while (++i < p->info->count)
+	{
+		pthread_mutex_destroy(&p->l_fork);
+		pthread_mutex_destroy(&p->eat_time);
+	}
+	return (0);
 }

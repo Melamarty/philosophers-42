@@ -41,6 +41,7 @@ void	*philo_routine(void *arg)
 	pthread_mutex_unlock(&p->eat_time);
 	while (1)
 	{
+		usleep(100);
 		take_fork(p);
 		if (p->info->count == 1)
 			return (NULL);
@@ -57,12 +58,11 @@ int	create_threads(t_philo *philos)
 	i = -1;
 	while (++i < philos->info->count)
 	{
-		philos[i].ind = i + 1;
 		if (pthread_create(&(philos[i].philo), NULL, philo_routine, &philos[i]))
 			return (1);
 		if (pthread_detach((philos)[i].philo))
 			return (1);
-		usleep(200);
+		usleep(100);
 	}
 	return (check_die(philos));
 	return (0);
@@ -72,25 +72,22 @@ int	init_philo(t_philo *philo, t_info *info)
 {
 	int	i;
 
-	i = 0;
+	i = -1;
 	info->start_time = get_time();
 	pthread_mutex_init(&info->meals_time, NULL);
 	pthread_mutex_init(&info->fin_m, NULL);
-	while (i < info->count)
+	while (++i < info->count)
 	{
 		philo[i].info = info;
 		philo[i].eat_c = 0;
+		philo[i].ind = i + 1;
+		philo[i].last_eat = 0;
+		pthread_mutex_init(&philo[i].l_fork, NULL);
+		pthread_mutex_init(&philo[i].eat_time, NULL);
 		if (i < info->count - 1)
 			philo[i].r_fork = &philo[i + 1].l_fork;
 		else
 			philo[i].r_fork = &philo[0].l_fork;
-		i++;
-		philo[i].r_fork = malloc(sizeof(pthread_mutex_t));
-		pthread_mutex_init(&philo[i].l_fork, NULL);
-		pthread_mutex_init(philo[i].r_fork, NULL);
-		pthread_mutex_init(&philo[i].eat_time, NULL);
-		// (*philo)[i].r_fork = malloc(sizeof(pthread_mutex_t));
-		// pthread_mutex_init((*philo)[i].r_fork, NULL);
 	}
 	if (create_threads(philo))
 		return (1);

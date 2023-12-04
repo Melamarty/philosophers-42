@@ -45,5 +45,6 @@ void 	sleep_philo(t_philo *p);
 void	feed_philo(t_philo *p);
 long 	get_time();
 void	print(char *msg, t_philo *philo);
+int		destroy_muts(t_philo *p);
 
 #endif

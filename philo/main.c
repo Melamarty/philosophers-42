@@ -19,5 +19,7 @@ int main (int ac, char **av)
 	if (!philo)
 		return (free (info), 1);
 	if (init_philo(philo, info))
-		return (1);
+		return (destroy_muts(philo), (1));
+	destroy_muts(philo);
+	return (1);
 }
