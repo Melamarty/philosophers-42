@@ -1,64 +1,71 @@
-#ifndef PHILPSOPHER_H
-# define PHILPSOPHER_H
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_bonus.h                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mel-amar <mel-amar@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/05 05:48:03 by mel-amar          #+#    #+#             */
+/*   Updated: 2023/12/05 05:48:04 by mel-amar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <signal.h>
-#include <limits.h>
-#include <sys/time.h>
-#include <semaphore.h>
+#ifndef PHILO_BONUS_H
+# define PHILO_BONUS_H
+
+# include <libc.h>
+# include <stdio.h>
+# include <limits.h>
+# include <pthread.h>
+# include <string.h>
+# include <semaphore.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include <sys/time.h>
 
 typedef struct s_info
 {
-	sem_t	*fork;
-	sem_t	*msg_s;
-	sem_t	*eat_s;
-	sem_t	*die_s;
-	sem_t	*fin;
-	int		meals;
-	int count;
-	int	t_die;
-	int	t_eat;
-	int	t_sleep;
-	long int		start_time;
 	pthread_t	monitor;
-	int		stop;
-} t_info;
+	sem_t		*fin;
+	sem_t		*fork;
+	sem_t		*die_s;
+	sem_t		*msg;
+	int			count;
+	long int	t_eat;
+	long int	t_sleep;
+	long int	t_die;
+	long int	meals;
+	long int	start;
+}				t_info;
 
-typedef struct s_list
+typedef struct s_philo
 {
-	sem_t			*last_eat_s;
-	pid_t			philo;
-	t_info			*info;
-	pthread_t		monitor;
-	int				eat_c;
-	int				ind;
-	long int		last_eat;
-} t_philo;
+	pid_t		pid_philo;
+	sem_t		*last_eat_s;
+	t_info		*info;
+	int			ind;
+	int			meals_count;
+	long		last_eat;
+}				t_philo;
 
-long	ft_atoi(const char *str);
-int 	check_args (int ac, char **av);
-int		init_info(int ac, char **av, t_info *info);
-int		init_philos(t_philo *philos, t_info *info);
-// void	print(char *msg, t_philo *philo);
-// void	wait_p(int	time);
-// void 	sleep_philo(t_philo *p);
-// void	feed_philo(t_philo *p);
-int		ft_destroy(t_philo *philo);
-void	ft_kill(t_philo *philos);
-
-
-void	philo_routine(t_philo *philo);
-void	wait_philo(long ms);
-int		take_fork(t_philo *philo);
-void	sleep_philo(t_philo *philo);
-int		feed_philo(t_philo *philo);
-void	print(char *str, t_philo *philo, int flag);
-void	*check_die(void *args);
-void	*check_meals(void *args);
-void	close_sem(t_philo *philos);
-long	get_time(void);
+long			ft_atoi(const char *str);
+int				create_thread_check_try(t_philo *philos);
+size_t			ft_strlen(const char *s);
+void			*check_meals(void *args);
+int				ft_check_error(int ac, char **av);
+void			*check_die(void *args);
+int				take_fork(t_philo *philo);
+int				feed_philo(t_philo *philo);
+void			sleep_philo(t_philo *philo);
+long			get_time(void);
+void			wait_philo(long time);
+int				create_philos(t_philo *philos);
+int				init_info(t_info *info, char **av, int ac);
+int				init_philo(t_philo *philos, t_info *info);
+void			print(char *str, t_philo *philo, int flag);
+void			philo_routine(t_philo *philo);
+// long			ft_get_time_ms(void);
+void			close_sems(t_philo *philos);
+int				check_args(char **nbs, int ac);
 
 #endif

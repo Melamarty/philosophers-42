@@ -1,85 +1,125 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init_philo_bonus.c                                 :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mel-amar <mel-amar@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/05 05:47:08 by mel-amar          #+#    #+#             */
+/*   Updated: 2023/12/05 05:47:11 by mel-amar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_bonus.h"
 
-void	*check_die(void *args)
-{
-	t_philo	*philos;
-
-	philos = (t_philo *)args;
-	sem_wait(philos->info->die_s);
-	while (1)
-	{
-		sem_wait(philos->last_eat_s);
-		if (get_time() > philos->last_eat + philos->info->t_die)
-		{
-			sem_post(philos->info->die_s);
-			sem_post(philos->info->die_s);
-			print("die", philos, 1);
-			return (NULL);
-		}
-		sem_post(philos->last_eat_s);
-		usleep(200);
-	}
-}
-
-int	die_monitor(t_philo *philos)
-{
-	if (pthread_create(&philos->info->monitor, NULL, check_meals,
-			philos) != 0)
-		return (1);
-	if (pthread_detach(philos->info->monitor) != 0)
-		return (1);
-	return (0);
-}
-
-void	ft_kill(t_philo *philos)
-{
-	int	j;
-
-	j = -1;
-	while (++j < philos->info->count)
-	{
-		if (philos[j].philo != 0)
-			kill(philos[j].philo, SIGINT);
-		usleep(100);
-	}
-}
-
-int	create_philosophers(t_philo *philos)
+void	close_sems(t_philo *philos)
 {
 	int	i;
 
-	i = -1;
-	philos->info->start_time = get_time();
-	while (++i < philos->info->count)
+	i = 0;
+	while (i < philos->info->count)
 	{
-		philos[i].philo = fork();
-		if (philos[i].philo < 0)
-			printf("Error: fork");
-		if (philos[i].philo == 0)
-			philo_routine(&philos[i]);
-		usleep(100);
+		sem_close(philos[i].last_eat_s);
+		i++;
 	}
-	if (die_monitor(philos))
-		return (1);
-	sem_wait(philos->info->die_s);
-	ft_kill(philos);
-	return (0);
+	sem_post(philos->info->fin);
+	sem_close(philos->info->fin);
+	sem_close(philos->info->fork);
+	sem_close(philos->info->die_s);
+	sem_close(philos->info->msg);
 }
 
-int	init_philos(t_philo *philos, t_info *info)
+void	philo_routine(t_philo *philo)
+{
+	philo->last_eat = get_time();
+	if (pthread_create(&philo->info->monitor, NULL, check_die, philo) != 0)
+		return ;
+	if (pthread_detach(philo->info->monitor) != 0)
+		return ;
+	while (1)
+	{
+		if (take_fork(philo))
+			exit(0);
+		feed_philo(philo);
+		sleep_philo(philo);
+	}
+	return ;
+}
+
+int	init_philo(t_philo *philos, t_info *info)
 {
 	int		i;
 
-	i = -1;
-	info->stop = 0;
-	while (++i < info->count)
+	i = 0;
+	while (i < info->count)
 	{
-		philos[i].ind = i + 1;
 		philos[i].info = info;
-		philos[i].eat_c = 0;
+		philos[i].meals_count = 0;
+		philos[i].last_eat = 0;
+		philos[i].ind = i + 1;
 		sem_unlink("/last_eat");
-		philos[i].last_eat_s = sem_open ("/last_eat", O_CREAT, 0644, 1);
+		philos[i].last_eat_s = sem_open("/last_eat", O_CREAT, 0644, 1);
+		if (philos[i].last_eat_s == SEM_FAILED)
+		{
+			printf("Error : semaphore");
+			return (1);
+		}
+		i++;
 	}
-	create_philosophers(philos);
 	return (0);
+}
+
+int	create_sem(char *str, sem_t **sem_all, int i)
+{
+	sem_unlink(str);
+	*sem_all = sem_open(str, O_CREAT, 0644, i);
+	if (*sem_all == SEM_FAILED)
+	{
+		printf("error: sem_open\n");
+		return (1);
+	}
+	return (0);
+}
+
+int	ft_init_ags(t_info *info, int ac, char **av)
+{
+	if (ac == 5 || ac == 6)
+	{
+		info->start = get_time();
+		info->count = ft_atoi(av[1]);
+		if (info->count == 0)
+			return (1);
+		info->t_die = ft_atoi(av[2]);
+		if (info->t_die == 0)
+			return (1);
+		info->t_eat = ft_atoi(av[3]);
+		if (info->t_eat == 0)
+			return (1);
+		info->t_sleep = ft_atoi(av[4]);
+		if (info->t_sleep == 0)
+			return (1);
+		if (create_sem("/msg", &info->msg, 1))
+			return (1);
+		if (create_sem("/die", &info->die_s, 0))
+			return (1);
+		if (create_sem("/fork", &info->fork, info->count))
+			return (1);
+		if (create_sem("/fin", &info->fin, 0))
+			return (1);
+	}
+	return (0);
+}
+
+int	init_info(t_info *info, char **av, int ac)
+{
+	int	i;
+
+	if (ac == 6)
+	{
+		info->meals = ft_atoi(av[5]);
+		if (info->meals == 0)
+			return (1);
+	}
+	i = ft_init_ags(info, ac, av);
+	return (i);
 }

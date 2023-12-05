@@ -1,27 +1,45 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main_bonus.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mel-amar <mel-amar@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/12/05 05:46:44 by mel-amar          #+#    #+#             */
+/*   Updated: 2023/12/05 05:46:47 by mel-amar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_bonus.h"
 
-
-int main (int ac, char **av)
+void	ft_free(t_info *info, t_philo *ph)
 {
-	t_philo		*philos;
-	t_info		*info;
+	free(info);
+	free(ph);
+}
 
-	if (ac < 5 || ac > 6 || check_args(ac, av))
+int	main(int ac, char **av)
+{
+	t_philo	*philos;
+	t_info	*info;
+
+	if (check_args(av, ac))
 	{
-		printf("\033[38;5;196margument error (^_^)\n");
-		printf("please check arguments syntaxe in the subject\n");
-		return (1);
+		printf("arguments error\n");
+		return (0);
 	}
 	info = malloc(sizeof(t_info));
 	if (!info)
 		return (1);
-	init_info(ac, av, info);
+	if (init_info(info, av, ac))
+		return (free(info), 1);
 	philos = malloc(sizeof(t_philo) * info->count);
 	if (!philos)
-		return (free (philos), 1);
-	if (init_philos(philos, info))
-		return (1);
-	close_sem(philos);
-	free (philos);
+		return (free(info), 1);
+	if (init_philo(philos, info))
+		return (ft_free(info, philos), 1);
+	if (create_philos(philos))
+		return (ft_free(info, philos), 1);
+	ft_free(info, philos);
 	return (0);
 }
